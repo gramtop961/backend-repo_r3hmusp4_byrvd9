@@ -12,9 +12,9 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
-# Example schemas (replace with your own):
+# Example schemas (kept for reference):
 
 class User(BaseModel):
     """
@@ -38,11 +38,47 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Coffee shop app schemas
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class MenuItem(BaseModel):
+    """
+    Coffee shop menu items
+    Collection: "menuitem"
+    """
+    name: str
+    description: Optional[str] = None
+    price: float = Field(..., ge=0)
+    category: str = Field(..., description="e.g., Coffee, Tea, Pastry")
+    image: Optional[str] = Field(None, description="Image URL")
+    available: bool = True
+
+class CateringRequest(BaseModel):
+    """
+    Catering reservation requests
+    Collection: "cateringrequest"
+    """
+    name: str
+    email: str
+    phone: str
+    event_date: str = Field(..., description="ISO date string")
+    guests: int = Field(..., ge=1, le=1000)
+    notes: Optional[str] = None
+
+class OrderItem(BaseModel):
+    item_id: str = Field(..., description="MenuItem document _id as string")
+    name: str
+    quantity: int = Field(..., ge=1)
+    price: float = Field(..., ge=0)
+
+class Order(BaseModel):
+    """
+    Pickup orders
+    Collection: "order"
+    """
+    customer_name: str
+    phone: str
+    items: List[OrderItem]
+    subtotal: float = Field(..., ge=0)
+    tax: float = Field(..., ge=0)
+    total: float = Field(..., ge=0)
+    pickup_time: Optional[str] = Field(None, description="ISO time string or short text like 'ASAP'")
